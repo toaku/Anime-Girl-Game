@@ -63,7 +63,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    //Attack �ִϸ��̼� �̺�Ʈ
+    //Attack 애니메이션 이벤트
     public void OnAttackEnd()
     {
         isAttack = false;

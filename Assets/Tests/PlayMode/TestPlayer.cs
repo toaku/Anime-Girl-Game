@@ -69,11 +69,7 @@ public class TestPlayer
     [UnityTest]
     public IEnumerator TestDisableActionOnAttack()
     {
-        /*
-         * attack À» ½ÇÇàÇÑ´Ù
-         * ´Ş¸®±â, ¹æÇâ ÀüÈ¯À» Çã¿ëÇÏÁö ¾Ê´ÂÁö È®ÀÎÇÑ´Ù
-         * È®ÀÎÀÌ ³¡³µ´Ù¸é attack ÀÌ ³¡³¯ ¶§±îÁö ±â´Ù¸°´Ù.
-         */
+        //í•œê¸€ ì£¼ì„ ì¸ì½”ë”© í…ŒìŠ¤íŠ¸
         PrivateMemberAccessor.InvokeMethod(player, "PlayAttackAnim", null);
 
         Assert.AreEqual(false, Convert.ToBoolean(PrivateMemberAccessor.InvokeMethod(player, "ShouldRun", null)));
