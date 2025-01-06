@@ -69,7 +69,6 @@ public class TestPlayer
     [UnityTest]
     public IEnumerator TestDisableActionOnAttack()
     {
-        //한글 주석 인코딩 테스트
         PrivateMemberAccessor.InvokeMethod(player, "PlayAttackAnim", null);
 
         Assert.AreEqual(false, Convert.ToBoolean(PrivateMemberAccessor.InvokeMethod(player, "ShouldRun", null)));
