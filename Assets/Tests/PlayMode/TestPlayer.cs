@@ -79,4 +79,24 @@ public class TestPlayer
             yield return new WaitForSeconds(0.5f);
         }
     }
+
+    [Test]
+    public void TestAttack()
+    {
+        Goblin goblin = GameObject.Find("Goblin").GetComponent<Goblin>();
+        Vector2 goblinOriginPosition = goblin.rigid.position;
+        float goblinMaxHP = goblin.hp.maxHP;
+        
+        float attackDistance = float.Parse(PrivateMemberAccessor.GetField(player, "attackDistance").ToString());
+        float damage = float.Parse(PrivateMemberAccessor.GetField(player, "damage").ToString());
+
+        goblin.rigid.position = new Vector2(player.rigid.position.x + attackDistance / 0.9f, player.rigid.position.y + player.height * 0.9f);
+
+        PrivateMemberAccessor.InvokeMethod(player, "Attack", null);
+
+        Assert.AreEqual(goblinMaxHP - damage, goblin.hp.currentHP);
+
+        goblin.rigid.position = goblinOriginPosition;
+        PrivateMemberAccessor.SetField(goblin.hp, "_currentHP", goblinMaxHP);
+    }
 }
