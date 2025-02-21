@@ -189,7 +189,7 @@ public class TestGoblin
     /* 
      * 5. 피격
      * 피격 애니메이션을 재생한다
-     * 공격, 이동 중이라면 캔슬한다
+     * 피격 중 공격, 이동하지 않고 하는 중이라면 캔슬한다
      * 피격 중 보기를 하지 않는다
      */
     [UnityTest]
@@ -219,6 +219,9 @@ public class TestGoblin
             yield return null;
         }
         PrivateMemberAccessor.InvokeMethod(goblin, "OnHit", goblin.hp, EventArgs.Empty);
+        Assert.AreEqual(false, PrivateMemberAccessor.GetField(goblin, "isAttack"));
+
+        yield return null;
         Assert.AreEqual(false, PrivateMemberAccessor.GetField(goblin, "isAttack"));
 
         float direction = Mathf.Sign(goblin.transform.localScale.x);

@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 public class TestHP
 {
@@ -39,21 +40,17 @@ public class TestHP
         bool isHitted = false;
         goblinHP.onHit += (object o, EventArgs args) => { isHitted = true; };
 
+        bool isDie = false;
+        goblinHP.onDie += (object o, EventArgs args) => { isDie = true; };
+
         goblinHP.Hit(damage);
 
         Assert.AreEqual(currentHP - damage, goblinHP.currentHP);
+        Assert.AreEqual(((Slider)PrivateMemberAccessor.GetField(goblinHP, "HPBar")).value, goblinHP.currentHP);
         Assert.AreEqual(true, isHitted);
-    }
 
-    /*
-    // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
-    // `yield return null;` to skip a frame.
-    [UnityTest]
-    public IEnumerator TestHPWithEnumeratorPasses()
-    {
-        // Use the Assert class to test conditions.
-        // Use yield to skip a frame.
-        yield return null;
+        goblinHP.Hit(goblinHP.currentHP);
+
+        Assert.AreEqual(true, isDie);
     }
-    */
 }
