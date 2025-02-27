@@ -75,7 +75,7 @@ public class Player : Unit
 
     void FixedUpdate()
     {
-        if(isHit == false && isDie == false)
+        if (isHit == false && isDie == false)
         {
             if (ShouldRun())
             {

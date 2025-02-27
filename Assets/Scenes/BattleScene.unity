@@ -9004,9 +9004,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1927fc56029d6da40bceebd5045f5074, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeManger: {fileID: 57628613}
+  volumeManager: {fileID: 57628613}
   volumeSlider: {fileID: 714362806}
-  volume: 0
+  volume: 2
 --- !u!1 &737765226
 GameObject:
   m_ObjectHideFlags: 0
@@ -9256,7 +9256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1927fc56029d6da40bceebd5045f5074, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeManger: {fileID: 57628613}
+  volumeManager: {fileID: 57628613}
   volumeSlider: {fileID: 750045494}
   volume: 0
 --- !u!1 &752812980
@@ -13216,9 +13216,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1927fc56029d6da40bceebd5045f5074, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeManger: {fileID: 57628613}
+  volumeManager: {fileID: 57628613}
   volumeSlider: {fileID: 1871041390}
-  volume: 0
+  volume: 1
 --- !u!1 &1871228254
 GameObject:
   m_ObjectHideFlags: 0
@@ -13407,7 +13407,7 @@ GameObject:
   - component: {fileID: 1956021918}
   - component: {fileID: 1956021919}
   m_Layer: 5
-  m_Name: MoblieController
+  m_Name: MobileController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

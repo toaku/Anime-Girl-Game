@@ -7,7 +7,7 @@ using static VolumeManager;
 public class VolumeSlider : MonoBehaviour
 {
     [SerializeField]
-    private VolumeManager volumeManger;
+    private VolumeManager volumeManager;
     [SerializeField]
     private Slider volumeSlider;
     [SerializeField]
@@ -27,6 +27,6 @@ public class VolumeSlider : MonoBehaviour
 
     public void OnValueChanged()
     {
-        volumeManger.ChangeVolume(volume, volumeSlider.value);
+        volumeManager.ChangeVolume(volume, volumeSlider.value);
     }
 }

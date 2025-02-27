@@ -19,6 +19,6 @@ public class MainMenuButton : MonoBehaviour
 
     public void LoadMainMenu()
     {
-        SceneManager.LoadScene("MainMenu");
+        SceneLoader.instance.LoadMainMenu();
     }
 }

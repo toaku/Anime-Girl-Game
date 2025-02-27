@@ -53,6 +53,6 @@ public class Joystick : MonoBehaviour, IDragHandler, IEndDragHandler
 
     public Vector2 GetDirection()
     {
-        return (stick.anchoredPosition - Vector2.zero).normalized;
+        return stick.anchoredPosition.normalized;
     }
 }

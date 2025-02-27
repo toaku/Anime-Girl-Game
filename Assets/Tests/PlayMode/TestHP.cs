@@ -7,32 +7,20 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
-public class TestHP
+public class TestHP : BattleSceneTest
 {
-    private bool isLoaded = false;
+    HP goblinHP;
 
-    [OneTimeSetUp]
-    public void LoadScene()
+    protected override void OnSceneLoadingEnd()
     {
-        SceneManager.LoadScene("SampleScene");
-    }
-
-    [UnitySetUp]
-    public IEnumerator SetUpBeforeTest()
-    {
-        if (isLoaded == false)
-        {
-            yield return null; // scene load
-            yield return null; // start
-            isLoaded = true;
-        }
+        goblinHP = GetGoblin().GetComponent<HP>();
     }
 
     // A Test behaves as an ordinary method
     [Test]
     public void TestHit()
     {
-        HP goblinHP = GameObject.Find("Goblin").GetComponent<HP>();
+        goblinHP = GameObject.Find("Goblin").GetComponent<HP>();
 
         float damage = 1;
         float currentHP = goblinHP.currentHP;

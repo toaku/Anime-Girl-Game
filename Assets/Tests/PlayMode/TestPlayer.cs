@@ -1,102 +1,167 @@
 using System;
 using System.Collections;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-public class TestPlayer
+public class TestPlayer : BattleSceneTest
 {
-    private bool isLoaded = false;
+    private PlayerTester playerTester;
 
-    private Player player;
-
-    [OneTimeSetUp]
-    public void LoadScene()
+    protected override void OnSceneLoadingEnd()
     {
-        SceneManager.LoadScene("SampleScene");
-    }
-
-    [UnitySetUp]
-    public IEnumerator SetUpBeforeTest()
-    {
-        if(isLoaded == false)
-        {
-            yield return null; // scene load
-            yield return null; // start
-            isLoaded = true;
-
-            player = GameObject.Find("Player").GetComponent<Player>();
-        }
-    }
-
-    [Test]
-    public void TestShouldRun()
-    {
-        PrivateMemberAccessor.SetField(player, "inputHorizontal", 1);
-
-        Assert.AreEqual(true, PrivateMemberAccessor.InvokeMethod(player, "ShouldRun", null));
-    }
-
-    [Test]
-    public void TestRun()
-    {
-        float inputHorizontal = 1;
-        float inputVertical = 0;
-
-        float speed = float.Parse(PrivateMemberAccessor.GetField(player, "speed").ToString());
-
-        PrivateMemberAccessor.SetField(player, "inputHorizontal", inputHorizontal);
-        PrivateMemberAccessor.SetField(player, "inputVertical", inputVertical);
-
-        PrivateMemberAccessor.InvokeMethod(player, "Run", null);
-
-        Vector2 expected = new Vector2(inputHorizontal, inputVertical) * speed;
-        Vector2 result = player.rigid.velocity;
-
-        Assert.AreEqual(expected, result);
-    }
-
-    [Test]
-    public void TestStop()
-    {
-        player.rigid.velocity = new Vector2(1, 0);
-        PrivateMemberAccessor.InvokeMethod(player, "Stop", null);
-
-        Assert.AreEqual(Vector2.zero, player.rigid.velocity);
+        playerTester = new PlayerTester(GetPlayer());
     }
 
     [UnityTest]
-    public IEnumerator TestDisableActionOnAttack()
+    public IEnumerator TestMove()
     {
-        PrivateMemberAccessor.InvokeMethod(player, "PlayAttackAnim", null);
+        ResetTest();
 
-        Assert.AreEqual(false, Convert.ToBoolean(PrivateMemberAccessor.InvokeMethod(player, "ShouldRun", null)));
-        Assert.AreEqual(false, Convert.ToBoolean(PrivateMemberAccessor.InvokeMethod(player, "ShouldFlip", null)));
+        Vector2 inputMovement = Vector2.right;
+        float speed = playerTester.GetSpeed();
 
-        while(Convert.ToBoolean(PrivateMemberAccessor.GetField(player, "isAttack")) == true)
+        JoystickTester joystickTester = playerTester.mobileControllerTester.joystickTester;
+        RectTransform stick = joystickTester.GetStick();
+
+        joystickTester.ControlJoystick((Vector2)stick.TransformPoint(inputMovement));
+
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        Vector2 expected = inputMovement * speed;
+        Vector2 result = playerTester.player.rigid.velocity;
+
+        Assert.AreEqual(true, Vector2.Distance(expected, result) < 0.1f, "expected : " + expected + ", result : " + result);
+
+        joystickTester.ResetJoystick();
+
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        Assert.AreEqual(Vector2.zero, playerTester.player.rigid.velocity);
+    }
+
+    [UnityTest]
+    public IEnumerator TestAttack()
+    {
+        ResetTest();
+
+        GoblinTester goblinTester = new GoblinTester(GetGoblin());
+        float goblinMaxHP = goblinTester.goblin.hp.maxHP;
+
+        float attackDistance = playerTester.GetAttackDistance();
+        float damage = playerTester.GetDamage();
+
+        Vector2 goblinPosition = new Vector2(playerTester.player.rigid.position.x + attackDistance / 0.9f, playerTester.player.rigid.position.y + playerTester.player.height * 0.9f);
+        Coroutine stopGoblin = playerTester.player.StartCoroutine(StopGoblin(goblinTester.goblin, goblinPosition));
+
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(true);
+        yield return null;
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(false);
+
+        Vector2 inputMovement = Vector2.right;
+        float speed = playerTester.GetSpeed();
+
+        JoystickTester joystickTester = playerTester.mobileControllerTester.joystickTester;
+        RectTransform stick = joystickTester.GetStick();
+
+        joystickTester.ControlJoystick((Vector2)stick.TransformPoint(inputMovement));
+
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        Vector2 expected = inputMovement * speed;
+        Vector2 result = playerTester.player.rigid.velocity;
+
+        Assert.AreEqual(Vector2.zero, playerTester.player.rigid.velocity);
+
+        while (playerTester.GetIsAttack() == true)
         {
-            yield return new WaitForSeconds(0.5f);
+            yield return null;
+        }
+
+        Assert.AreEqual(goblinMaxHP - damage, goblinTester.goblin.hp.currentHP);
+    }
+
+    private IEnumerator StopGoblin(Goblin goblin, Vector2 position)
+    {
+        while (true)
+        {
+            if(goblin.rigid.position != position)
+                goblin.rigid.position = position;
+            yield return null;
         }
     }
 
-    [Test]
-    public void TestAttack()
+    [UnityTest]
+    public IEnumerator TestHit()
     {
-        Goblin goblin = GameObject.Find("Goblin").GetComponent<Goblin>();
-        Vector2 goblinOriginPosition = goblin.rigid.position;
-        float goblinMaxHP = goblin.hp.maxHP;
-        
-        float attackDistance = float.Parse(PrivateMemberAccessor.GetField(player, "attackDistance").ToString());
-        float damage = float.Parse(PrivateMemberAccessor.GetField(player, "damage").ToString());
+        ResetTest();
 
-        goblin.rigid.position = new Vector2(player.rigid.position.x + attackDistance / 0.9f, player.rigid.position.y + player.height * 0.9f);
+        while (playerTester.GetIsHit() == false)
+        {
+            yield return null;
+        }
 
-        PrivateMemberAccessor.InvokeMethod(player, "Attack", null);
+        Assert.AreEqual(true, playerTester.player.hp.maxHP != playerTester.player.hp.currentHP);
 
-        Assert.AreEqual(goblinMaxHP - damage, goblin.hp.currentHP);
+        Vector2 inputMovement = Vector2.right;
+        float speed = playerTester.GetSpeed();
 
-        goblin.rigid.position = goblinOriginPosition;
-        PrivateMemberAccessor.SetField(goblin.hp, "_currentHP", goblinMaxHP);
+        JoystickTester joystickTester = playerTester.mobileControllerTester.joystickTester;
+        RectTransform stick = joystickTester.GetStick();
+
+        joystickTester.ControlJoystick((Vector2)stick.TransformPoint(inputMovement));
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        Vector2 expected = inputMovement * speed;
+        Vector2 result = playerTester.player.rigid.velocity;
+
+        Assert.AreEqual(Vector2.zero, playerTester.player.rigid.velocity);
+
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(true);
+        yield return null;
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(false);
+
+        Assert.AreEqual(false, playerTester.GetIsAttack());
+    }
+
+    [UnityTest]
+    public IEnumerator TestDie()
+    {
+        ResetTest();
+
+        playerTester.player.hp.Hit(playerTester.player.hp.maxHP);
+
+        Vector2 inputMovement = Vector2.right;
+        float speed = playerTester.GetSpeed();
+
+        JoystickTester joystickTester = playerTester.mobileControllerTester.joystickTester;
+        RectTransform stick = joystickTester.GetStick();
+
+        joystickTester.ControlJoystick((Vector2)stick.TransformPoint(inputMovement));
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        Vector2 expected = inputMovement * speed;
+        Vector2 result = playerTester.player.rigid.velocity;
+
+        Assert.AreEqual(Vector2.zero, playerTester.player.rigid.velocity);
+
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(true);
+        yield return null;
+        playerTester.mobileControllerTester.SetAttackButtonIsInput(false);
+
+        Assert.AreEqual(false, PrivateMemberAccessor.GetField(playerTester.player, "isAttack"));
+    }
+
+    private void ResetTest()
+    {
+        playerTester.ResetPlayer();
+        playerTester.mobileControllerTester.ResetMobileController();
     }
 }
