@@ -45,37 +45,25 @@ public class Player : Unit
     // Update is called once per frame
     void Update()
     {
-        if(isHit == false && isDie == false)
+        if(IsNotSleep() == true)
         {
             SetInputMovement();
 
-            bool animRun = animator.GetBool("run");
-            if (ShouldRun())
-            {
-                if (animRun == false)
-                    animator.SetBool("run", true);
-            }
-            else
-            {
-                if (animRun == true)
-                    animator.SetBool("run", false);
-            }
-
             if (ShouldFlip())
-            {
                 Flip();
-            }
 
             if (playerInput.GetAttackInput() && isAttack == false)
             {
                 PlayAttackAnimation();
             }
         }
+
+        ControlMoveAnimation();
     }
 
     void FixedUpdate()
     {
-        if (isHit == false && isDie == false)
+        if (IsNotSleep() == true)
         {
             if (ShouldRun())
             {
@@ -107,9 +95,33 @@ public class Player : Unit
         isHit = false;
     }
 
+    private bool IsNotSleep()
+    {
+        bool isNotSleep = false;
+        if (isHit == false && isDie == false)
+            isNotSleep = true;
+
+        return isNotSleep;
+    }
+
     private void SetInputMovement()
     {
         inputMovement = playerInput.GetMovementInput();
+    }
+
+    private void ControlMoveAnimation()
+    {
+        bool animRun = animator.GetBool("run");
+        if (ShouldRun())
+        {
+            if (animRun == false)
+                animator.SetBool("run", true);
+        }
+        else
+        {
+            if (animRun == true)
+                animator.SetBool("run", false);
+        }
     }
 
     private bool ShouldRun()

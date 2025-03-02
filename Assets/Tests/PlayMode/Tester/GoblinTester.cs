@@ -111,24 +111,9 @@ public class GoblinTester
         PrivateMemberAccessor.SetField(goblin, "isDie", isDie);
     }
 
-    public void TryMoving()
-    {
-        PrivateMemberAccessor.InvokeMethod(goblin, "TryMoving", null);
-    }
-
     public void ControlMovingAnimation()
     {
         PrivateMemberAccessor.InvokeMethod(goblin, "ControlMovingAnimation", null);
-    }
-
-    public void TryAttack()
-    {
-        PrivateMemberAccessor.InvokeMethod(goblin, "TryAttack", null);
-    }
-
-    public void TryFlipping()
-    {
-        PrivateMemberAccessor.InvokeMethod(goblin, "TryFlipping", null);
     }
 
     public void Stay()

@@ -38,7 +38,7 @@ public class Goblin : Unit
 
     [SerializeField]
     private float stayTime;
-    private WaitForSeconds waitingStayTime;
+    private float stayCurrentTime;
     private bool isStay = false;
 
     [SerializeField]
@@ -57,26 +57,38 @@ public class Goblin : Unit
         animator = GetComponent<Animator>();
         rigid = GetComponent<Rigidbody2D>();
 
-        waitingStayTime = new WaitForSeconds(stayTime);
-
         hp.onHit += OnHit;
         hp.onDie += OnDie;
     }
 
     void Update()
     {
-        TryAttack();
-
-        TryFlipping();
+        if (IsNotSleep() == true)
+        {
+            if (ShouldAttack())
+                StartAttack();
+        }
 
         ControlMovingAnimation();
+
+        CheckStayTime();
+        if (stayCurrentTime > stayTime)
+            StayEnd();
     }
 
     void FixedUpdate()
     {
-        TryMoving();
+        if (IsNotSleep() == true)
+        {
+            if (ShouldMove())
+                Move();
 
-        TryStopping();
+            if (ShouldStop() == true)
+            {
+                Stop();
+                Stay();
+            }
+        }
     }
 
     //Attack 애니메이션 이벤트
@@ -98,15 +110,24 @@ public class Goblin : Unit
         EndHit();
     }
 
+    private bool IsNotSleep()
+    {
+        bool isNotSleep = false;
+        if(isDie == false && isStay == false)
+        {
+            isNotSleep = true;
+        }
+
+        return isNotSleep;
+    }
+
     private bool ShouldMove()
     {
         bool shouldMove = false;
         if (IsPlayerInAttackArea() == false 
             && isMoving == false 
             && isAttack == false 
-            && isHitting == false 
-            && isStay == false 
-            && isDie == false)
+            && isHitting == false)
         {
             shouldMove = true;
         }
@@ -116,6 +137,9 @@ public class Goblin : Unit
 
     private void Move()
     {
+        if (ShouldFlip())
+            Flip();
+
         isMoving = true;
 
         int arrivalAngle = Random.Range(-sideAngleOfArrival, sideAngleOfArrival + 1); // 최대값은 범위에 포함되지 않기 때문에 1 을 더해서 포함시킴
@@ -127,14 +151,6 @@ public class Goblin : Unit
         Vector2 arrivalDirection = (arrivalPosition - rigid.position).normalized;
 
         rigid.velocity = arrivalDirection * speed;
-    }
-
-    private void TryMoving()
-    {
-        if (ShouldMove())
-        {
-            Move();
-        }
     }
 
     private void ControlMovingAnimation()
@@ -152,32 +168,35 @@ public class Goblin : Unit
         }
     }
 
+    private bool IsArrived()
+    {
+        bool isArrived = false;
+        if (Vector2.Distance(movingStartPosition, rigid.position) > maxMoveDistance
+            || Vector2.Distance(rigid.position, arrivalPosition) < 0.1f)
+        {
+            isArrived = true;
+        }
+
+        return isArrived;
+    }
+
+    private bool ShouldStop()
+    {
+        bool shouldStop = false;
+        if (isMoving == true && (IsArrived() == true || isAttack == true))
+        {
+            shouldStop = true;
+        }
+
+        return shouldStop;
+    }
+
     private void Stop()
     {
         movingStartPosition = Vector2.zero;
         arrivalPosition = Vector2.zero;
         rigid.velocity = Vector2.zero;
         isMoving = false;
-    }
-
-    private void TryStopping()
-    {
-        if (isMoving == true
-            && isStay == false
-            && isDie == false)
-        {
-            bool isMoveEnd = Vector2.Distance(movingStartPosition, rigid.position) > maxMoveDistance
-                || Vector2.Distance(rigid.position, arrivalPosition) < 0.1f;
-
-            if (isMoveEnd == true || isAttack == true)
-            {
-                Stop();
-                if(isMoveEnd == true && isAttack == false)
-                {
-                    Stay();
-                }
-            }
-        }
     }
 
     private bool ShouldFlip()
@@ -187,30 +206,26 @@ public class Goblin : Unit
         Vector2 direction = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         float angle = Vector2.Angle(direction, player.rigid.position - rigid.position);
 
-        if (angle > 90 && isMoving == false && isStay == false && isDie == false)
+        if (angle > 90)
             shouldFlip = true;
 
         return shouldFlip;
     }
 
-    private void TryFlipping()
-    {
-        if (ShouldFlip())
-            Flip();
-    }
-
     private void Stay()
     {
         isStay = true;
-
-        StartCoroutine(StopStayingAfterWait());
+        stayCurrentTime = 0f;
     }
 
-    private IEnumerator StopStayingAfterWait()
+    private void StayEnd()
     {
-        yield return waitingStayTime;
-
         isStay = false;
+    }
+
+    private void CheckStayTime()
+    {
+        stayCurrentTime += Time.deltaTime;
     }
 
     private bool IsPlayerInAttackArea()
@@ -231,7 +246,7 @@ public class Goblin : Unit
     private bool ShouldAttack()
     {
         bool shouldAttack = false;
-        if (IsPlayerInAttackArea() && isAttack == false && isHitting == false && isStay == false && isDie == false)
+        if (IsPlayerInAttackArea() && isAttack == false && isHitting == false)
         {
             shouldAttack = true;
         }
@@ -249,14 +264,6 @@ public class Goblin : Unit
     {
         isAttack = false;
         Stay();
-    }
-
-    private void TryAttack()
-    {
-        if (ShouldAttack())
-        {
-            StartAttack();
-        }
     }
 
     private void GiveDamage()

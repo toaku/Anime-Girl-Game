@@ -26,14 +26,14 @@ public class TestGoblin : BattleSceneTest
         float goblinAttackDistance = goblinTester.GetAttackDistance();
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(goblinAttackDistance * 1.5f, 0f);
 
-        goblinTester.TryMoving();
+        yield return new WaitForFixedUpdate();
         goblinTester.ControlMovingAnimation();
 
         Assert.AreEqual(false, goblinTester.goblin.rigid.velocity == Vector2.zero, "velocity : " + goblinTester.goblin.rigid.velocity);
         Assert.AreEqual(true, goblinTester.goblin.animator.GetBool("run"));
 
         float direction = MathF.Sign(goblinTester.goblin.transform.localScale.x);
-        goblinTester.TryFlipping();
+        yield return new WaitForFixedUpdate();
         Assert.AreEqual(direction, MathF.Sign(goblinTester.goblin.transform.localScale.x));
 
         while (goblinTester.GetIsMoving() == true)
@@ -52,21 +52,22 @@ public class TestGoblin : BattleSceneTest
         float maxMoveDistance = goblinTester.GetMaxMoveDistance();
 
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(maxMoveDistance * 2, 0f);
-        goblinTester.TryMoving();
+        yield return new WaitForFixedUpdate();
 
         while (goblinTester.GetIsMoving() == true)
         {
             yield return null;
         }
 
-        Assert.AreEqual(true, MathF.Abs(Vector2.Distance(goblinTester.goblinOriginPosition, goblinTester.goblin.rigid.position) - maxMoveDistance) < 0.1f);
+        float moveDistance = Vector2.Distance(goblinTester.goblinOriginPosition, goblinTester.goblin.rigid.position);
+        Assert.AreEqual(true, Mathf.Abs(moveDistance - maxMoveDistance) < 0.1f, "이동 거리 : " + moveDistance + ", 최대 이동 거리 : " + maxMoveDistance);
         Assert.AreEqual(true, goblinTester.GetIsStay());
 
         ResetTest();
 
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(maxMoveDistance / 2, 0f);
 
-        goblinTester.TryMoving();
+        yield return new WaitForFixedUpdate();
         Vector2 arrivalPosition = goblinTester.GetArrivalPosition();
 
         playerTester.player.rigid.position = playerTester.player.rigid.position + new Vector2(0f, maxMoveDistance);
@@ -76,25 +77,25 @@ public class TestGoblin : BattleSceneTest
             yield return null;
         }
 
-        Assert.AreEqual(true, Vector2.Distance(goblinTester.goblin.rigid.position, arrivalPosition) < 0.1f);
+        Assert.AreEqual(true, Vector2.Distance(goblinTester.goblin.rigid.position, arrivalPosition) < 0.1f, "현재 위치 : " + goblinTester.goblin.rigid.position + ", 도착 예상 위치 : " + arrivalPosition);
         Assert.AreEqual(true, goblinTester.GetIsStay());
     }
 
-    [Test]
-    public void TestStay()
+    [UnityTest]
+    public IEnumerator TestStay()
     {
         ResetTest();
 
         goblinTester.Stay();
 
-        goblinTester.TryMoving();
+        yield return null;
         Assert.AreEqual(Vector2.zero, goblinTester.goblin.rigid.velocity);
 
-        goblinTester.TryAttack();
+        yield return null;
         Assert.AreEqual(false, goblinTester.GetIsAttack());
 
         float direction = Mathf.Sign(goblinTester.goblin.transform.localScale.x);
-        goblinTester.TryFlipping();
+        yield return null;
         Assert.AreEqual(direction, Mathf.Sign(goblinTester.goblin.transform.localScale.x));
     }
 
@@ -111,11 +112,12 @@ public class TestGoblin : BattleSceneTest
             yield return null;
         }
 
-        goblinTester.TryMoving();
+        float direction = Mathf.Sign(goblinTester.goblin.transform.localScale.x);
+
+        yield return new WaitForFixedUpdate();
         Assert.AreEqual(Vector2.zero, goblinTester.goblin.rigid.velocity);
 
-        float direction = Mathf.Sign(goblinTester.goblin.transform.localScale.x);
-        goblinTester.TryFlipping();
+        yield return null;
         Assert.AreEqual(direction, Mathf.Sign(goblinTester.goblin.transform.localScale.x));
 
         //transition 에 의해 state 가 전환되길 기다림
@@ -131,8 +133,6 @@ public class TestGoblin : BattleSceneTest
 
         float damage = goblinTester.GetDamage();
         Assert.AreEqual(damage, playerTester.player.hp.maxHP - playerTester.player.hp.currentHP);
-
-        goblinTester.GetIsStay();
     }
 
     [UnityTest]
@@ -143,7 +143,7 @@ public class TestGoblin : BattleSceneTest
         float attackDistance = goblinTester.GetAttackDistance();
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(attackDistance * 1.5f, 0);
 
-        goblinTester.TryMoving();
+        yield return new WaitForFixedUpdate();
         Assert.AreEqual(true, goblinTester.goblin.rigid.velocity != Vector2.zero);
 
         goblinTester.goblin.hp.Hit(1f);
@@ -180,35 +180,33 @@ public class TestGoblin : BattleSceneTest
 
         Assert.AreEqual(true, goblinTester.goblin.animator.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Die"));
 
-        goblinTester.TryMoving();
-        Assert.AreEqual(Vector2.zero, goblinTester.goblin.rigid.velocity);
-
-        goblinTester.TryAttack();
-        Assert.AreEqual(false, goblinTester.GetIsAttack());
-
         float direction = Mathf.Sign(goblinTester.goblin.transform.localScale.x);
-        goblinTester.TryFlipping();
+
+        yield return null;
+
+        Assert.AreEqual(Vector2.zero, goblinTester.goblin.rigid.velocity);
+        Assert.AreEqual(false, goblinTester.GetIsAttack());
         Assert.AreEqual(direction, Mathf.Sign(goblinTester.goblin.transform.localScale.x));
 
         goblinTester.goblin.hp.Hit(1);
         Assert.AreEqual(false, goblinTester.GetIsHitting());
     }
 
-    [Test]
-    public void TestFlip()
+    [UnityTest]
+    public IEnumerator TestFlip()
     {
         ResetTest();
 
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(1, 0);
 
-        goblinTester.TryFlipping();
+        yield return null;
         Assert.AreEqual(1, Mathf.Sign(goblinTester.goblin.transform.localScale.x));
 
         ResetTest();
 
         playerTester.player.rigid.position = goblinTester.goblin.rigid.position + new Vector2(-1, 0);
 
-        goblinTester.TryFlipping();
+        yield return new WaitForFixedUpdate();
         Assert.AreEqual(-1, Mathf.Sign(goblinTester.goblin.transform.localScale.x));
     }
 
